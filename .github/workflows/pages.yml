@@ -3,7 +3,7 @@ name: Publish static panel
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: [ambient-update]
+    types: [github-update]
 
 permissions:
   contents: read

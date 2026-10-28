@@ -1,10 +1,22 @@
 {
-  "schema": 1,
-  "recorded_at": "2026-10-27T12:00:00+00:00",
+  "schema": 2,
+  "recorded_at": "2000-01-01T00:00:00Z",
   "values": {
-    "outdoor_c": 8.6,
-    "indoor_c": 20.4,
-    "cellar_c": 13.2,
-    "cellar_rh": 63
+    "outdoor_c": 7.4,
+    "outdoor_rh": 83,
+    "zone_a_c": 12.2,
+    "zone_a_rh": 72,
+    "zone_b_c": 21.1,
+    "zone_b_rh": 45,
+    "zone_c_c": 20.2,
+    "zone_c_rh": 47,
+    "zone_d_c": null,
+    "zone_d_rh": null,
+    "zone_e_c": 21.5,
+    "zone_e_rh": 44,
+    "zone_f_c": 20.9,
+    "zone_f_rh": 46,
+    "zone_g_c": 15.1,
+    "zone_g_rh": 61
   }
 }

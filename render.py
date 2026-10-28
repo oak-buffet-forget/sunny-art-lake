@@ -2,7 +2,7 @@
 """Finnish static room dashboard + bounded, allowlisted 48-hour history.
 
 Python 3.10+ standard library only. No HA credentials or entity IDs. Dispatch
-schema stays at 2. Manual workflow runs rebuild real data, never demo data.
+schema stays at 2. Manual workflow runs rebuild existing observations.
 """
 from __future__ import annotations
 
@@ -133,7 +133,7 @@ def validate_history(history: object) -> dict:
     if type(history["version"]) is not int or history["version"] != HISTORY_VERSION:
         raise ValueError("Unsupported history version")
     if history["kind"] != "observed":
-        raise ValueError("Only observed history can be restored; demo history is prohibited")
+        raise ValueError("Only observed history can be restored")
     raw = history["samples"]
     if not isinstance(raw, list) or len(raw) > MAX_SAMPLES:
         raise ValueError("Invalid history sample count")
@@ -267,7 +267,7 @@ def metric_html(samples: list[dict], key: str, label: str, room: str, end: datet
     )
 
 
-def render(history: dict, template: str, *, demo: bool = False) -> str:
+def render(history: dict, template: str) -> str:
     samples = history["samples"]
     if not samples:
         raise ValueError("No stored observations; send an update from Home Assistant first")
@@ -304,43 +304,15 @@ def render(history: dict, template: str, *, demo: bool = False) -> str:
         range_start=date_text(start), range_end=date_text(end),
         summary=f"{available} / 16 mittausarvoa saatavilla",
         history_count=f"{len(samples)} tilannekuvaa", history_note=history_note,
-        available=str(available), demo_flag="true" if demo else "false",
-        status_initial="Esimerkkitiedot" if demo else "Tilannekuva · tarkista koontiaika",
-        demo_notice=(
-            '<aside class="demo-notice"><strong>Esikatselu · keksityt mittaukset</strong>'
-            '<span>Tässä näkyy 48 tunnin mallihistoria, ei oikeaa anturidataa.</span></aside>'
-        ) if demo else "",
+        available=str(available),
+        status_initial="Tilannekuva · tarkista koontiaika",
     )
 
-
-def demo_history(sample_payload: dict, now: datetime | None = None) -> dict:
-    """Synthetic preview only; never written to the live history store."""
-    base = validate_values(sample_payload["values"])
-    now = (now or datetime.now(UTC)).replace(microsecond=0)
-    samples = []
-    for i in range(97):
-        # A deliberate gap of three updates demonstrates honest line breaks.
-        if i in (47, 48, 49):
-            continue
-        stamp = now - timedelta(minutes=(96 - i) * 30)
-        values = {}
-        for n, (key, (low, high, precision)) in enumerate(METRICS.items()):
-            value = base[key]
-            if value is not None:
-                amplitude = (2.4 if key.startswith('outdoor') else .5) if key.endswith('_c') else 3.0
-                phase = (i - 96) / 48 * math.tau
-                curve = math.sin(phase + n * .29) - math.sin(n * .29)
-                noise = .06 * math.sin(i * 1.81 + n)
-                value = round(max(low, min(high, value + amplitude * (curve + noise))), precision)
-            values[key] = value
-        samples.append({"recorded_at": iso(stamp), "values": values})
-    return {"version": HISTORY_VERSION, "kind": "demo", "samples": samples}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--event", help="GitHub repository_dispatch event JSON")
-    parser.add_argument("--sample", action="store_true", help="Local synthetic preview only")
     parser.add_argument("--rebuild", action="store_true", help="Rebuild using the last real observations")
     parser.add_argument("--history", default="state/history.json")
     parser.add_argument("--history-output", help="Path to validated history for the next run")
@@ -348,25 +320,20 @@ def main() -> None:
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
     event_name = os.environ.get("GITHUB_EVENT_NAME", "")
-    if args.sample:
-        if args.history_output or args.rebuild:
-            raise ValueError("Demo data must not be written to the real history store")
-        history = demo_history(read_json(root / "sample.json"))
+    history_path = Path(args.history)
+    history = validate_history(read_json(history_path)) if history_path.exists() else empty_history()
+    if args.rebuild or event_name == "workflow_dispatch":
+        if not history["samples"]:
+            raise ValueError("No stored history yet; run the publish action in Home Assistant first")
     else:
-        history_path = Path(args.history)
-        history = validate_history(read_json(history_path)) if history_path.exists() else empty_history()
-        if args.rebuild or event_name == "workflow_dispatch":
-            if not history["samples"]:
-                raise ValueError("No stored history yet; run the publish action in Home Assistant first")
-        else:
-            if not args.event or event_name != "repository_dispatch":
-                raise ValueError("Use a repository_dispatch event, --rebuild, or local --sample")
-            event = read_json(Path(args.event))
-            if not isinstance(event, dict) or event.get("action") != EVENT_TYPE:
-                raise ValueError("Unexpected dispatch event; expected github-update")
-            snapshot = validate(event.get("client_payload"))
-            history = merge_history(history, snapshot)
-    document = render(history, (root / "template.html").read_text(encoding="utf-8"), demo=args.sample)
+        if not args.event or event_name != "repository_dispatch":
+            raise ValueError("Use a repository_dispatch event or --rebuild")
+        event = read_json(Path(args.event))
+        if not isinstance(event, dict) or event.get("action") != EVENT_TYPE:
+            raise ValueError("Unexpected dispatch event; expected github-update")
+        snapshot = validate(event.get("client_payload"))
+        history = merge_history(history, snapshot)
+    document = render(history, (root / "template.html").read_text(encoding="utf-8"))
     target = Path(args.output)
     target.mkdir(parents=True, exist_ok=True)
     (target / "index.html").write_text(document, encoding="utf-8")

@@ -8,35 +8,78 @@ on:
 permissions:
   contents: read
 
+# Serialize restore -> merge -> save -> deploy. Never cancel an in-progress write.
 concurrency:
   group: ambient-panel-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pages: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check renderer and history handling
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Restore the last real history
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EXPECTED_WORKFLOW: .github/workflows/pages.yml
+        run: python3 restore_history.py --output state/history.json
+
+      # repository_dispatch adds one snapshot. workflow_dispatch only rebuilds
+      # existing real data; it does NOT insert a new observation or demo values.
+      - name: Render room cards and 48-hour history
+        run: >-
+          python3 render.py --event "$GITHUB_EVENT_PATH"
+          --history state/history.json
+          --history-output state/history.json
+          --output site
+
+      # Save before deploying: a temporary Pages failure must not lose a sample.
+      - name: Save real history for the next run
+        uses: actions/upload-artifact@v7
+        with:
+          name: ambient-panel-history-v1
+          path: state/history.json
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 9
+          overwrite: true
+          archive: true
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Render strictly allowlisted metrics
-        run: python3 render.py --event "$GITHUB_EVENT_PATH" --output site
+
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
+          retention-days: 1
 
   deploy:
     needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       pages: write
       id-token: write
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

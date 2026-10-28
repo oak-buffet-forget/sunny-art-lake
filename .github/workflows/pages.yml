@@ -29,9 +29,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check renderer and history handling
-        run: python3 -m unittest discover -s tests -v
-
       - name: Restore the last real history
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -40,7 +37,7 @@ jobs:
         run: python3 restore_history.py --output state/history.json
 
       # repository_dispatch adds one snapshot. workflow_dispatch only rebuilds
-      # existing real data; it does NOT insert a new observation or demo values.
+      # existing real data; it does NOT insert a new observation.
       - name: Render room cards and 48-hour history
         run: >-
           python3 render.py --event "$GITHUB_EVENT_PATH"

@@ -1,0 +1,42 @@
+name: Publish static panel
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [ambient-update]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ambient-panel-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Render strictly allowlisted metrics
+        run: python3 render.py --event "$GITHUB_EVENT_PATH" --output site
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

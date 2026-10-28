@@ -135,7 +135,7 @@ def main() -> None:
         if not args.event or event_name != "repository_dispatch":
             raise ValueError("Use --sample or a repository_dispatch event")
         event = json.loads(Path(args.event).read_text(encoding="utf-8"))
-        if not isinstance(event, dict) or event.get("action") != "ambient-update":
+        if not isinstance(event, dict) or event.get("action") != "github-update":
             raise ValueError("Unexpected dispatch event")
         payload = event.get("client_payload")
     output = render(payload, (root / "template.html").read_text(encoding="utf-8"), demo=demo)

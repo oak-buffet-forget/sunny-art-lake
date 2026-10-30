@@ -287,25 +287,12 @@ def render(history: dict, template: str) -> str:
             + metric_html(samples, f"{key}_rh", "Ilmankosteus", label, end)
             + '</article>'
         )
-    available = sum(value is not None for value in values.values())
-    span_h = (end - parse_stamp(samples[0]["recorded_at"])).total_seconds() / 3600
-    if len(samples) == 1:
-        history_note = "Ensimmäinen tilannekuva tallennettu. Käyrät alkavat muodostua seuraavilla päivityksillä."
-    elif span_h < 47.5:
-        history_note = f"Historiaa kertynyt {number(span_h, 1)} h. Tyhjä osa täyttyy tulevilla päivityksillä."
-    else:
-        history_note = "Viimeiset 48 tuntia. Puuttuvat arvot ja pitkät lähetyskatkot näkyvät käyrissä aukkoina."
     fi_zone = ZoneInfo("Europe/Helsinki")
     def date_text(t):
         return t.astimezone(fi_zone).strftime("%d.%m. klo %H.%M")
     return Template(template).substitute(
         cards="\n".join(cards),
         timestamp_iso=iso(end), timestamp_readable=date_text(end),
-        range_start=date_text(start), range_end=date_text(end),
-        summary=f"{available} / 16 mittausarvoa saatavilla",
-        history_count=f"{len(samples)} tilannekuvaa", history_note=history_note,
-        available=str(available),
-        status_initial="Tilannekuva · tarkista koontiaika",
     )
 
 

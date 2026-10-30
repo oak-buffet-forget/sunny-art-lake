@@ -12,7 +12,26 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}.page{max-width:1220px;margin:0 auto;padding:46px 26px 32px}.timestamp{margin:0 0 21px;font-size:12px;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow);padding:21px 23px 23px}.card.missing{border-style:dashed}.card-heading{display:flex;gap:11px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:21px}.room-icon{width:32px;height:32px;background:var(--soft);color:#597487;border-radius:9px;display:grid;place-items:center;flex-shrink:0}.room-icon svg{width:21px;height:21px}h2{font-size:18px;letter-spacing:-.025em;font-weight:650;line-height:1.25;margin:0;overflow-wrap:anywhere}.room-warning{margin-left:auto;background:var(--soft);color:var(--muted);width:19px;height:19px;border-radius:100%;text-align:center;line-height:19px;font-size:12px}.metric{--accent:var(--teal)}.metric.humidity{--accent:var(--purple);border-top:1px solid var(--line);padding-top:20px;margin-top:20px}.metric-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;color:var(--muted)}.metric-label{display:flex;align-items:center;gap:7px;font-weight:550}.metric-label i{width:6px;height:6px;border-radius:100%;background:var(--accent)}.missing-label{font-size:10px}.value{font-weight:700;letter-spacing:-.05em;line-height:1.08;font-size:43px;font-variant-numeric:tabular-nums;margin:8px 0 13px;white-space:nowrap}.unit{font-size:20px;letter-spacing:-.02em;margin-left:7px;font-weight:500;color:var(--muted)}.humidity .value{font-size:32px;margin-bottom:12px}.humidity .unit{font-size:17px}.chart{height:82px;position:relative;outline:none;touch-action:pan-y;border-radius:5px}.humidity .chart{height:64px}.chart:focus-visible{outline:2px solid var(--accent);outline-offset:4px}.chart svg{display:block;width:100%;height:100%;overflow:visible}.chart-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}.chart-fill{fill:var(--accent);fill-opacity:.085}.chart-guide{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4;fill:none;vector-effect:non-scaling-stroke}.chart-point{fill:var(--accent)}.chart-empty{fill:var(--muted);font-size:12px;font-family:inherit}.chart-times{display:flex;justify-content:space-between;color:var(--muted);font-size:9px;margin-top:7px;font-variant-numeric:tabular-nums}.chart-range{font-size:10px;line-height:1.5;color:var(--muted);margin-top:11px;min-height:15px}.chart-range strong{font-weight:600;color:var(--ink)}.chart-range span{margin:0 4px;color:var(--line)}.chart-tooltip{position:absolute;z-index:4;left:50%;bottom:8px;transform:translateX(-50%);background:var(--ink);color:var(--card);font-size:11px;white-space:nowrap;padding:7px 9px;border-radius:6px;pointer-events:none;box-shadow:0 3px 12px #0002}.chart-cursor{position:absolute;top:0;bottom:0;border-left:1px dashed var(--accent);pointer-events:none}
 @media(min-width:1550px){.page{max-width:1560px}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:1000px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.page{padding:32px 22px}}
-@media(max-width:620px){.cards{grid-template-columns:1fr;gap:15px}.page{padding:27px 18px}.timestamp{font-size:11px}.card{padding:20px 23px 22px}.value{font-size:45px}.chart{height:78px}.chart-tooltip{font-size:10px}}
+@media(max-width:620px){
+  .page{padding:18px 12px}
+  .timestamp{margin-bottom:12px;font-size:11px}
+  .cards{grid-template-columns:1fr;gap:10px}
+  .card{padding:14px 16px 16px;border-radius:14px}
+  .card-heading{gap:9px;padding-bottom:12px;margin-bottom:14px}
+  .room-icon{width:28px;height:28px;border-radius:8px}
+  .room-icon svg{width:18px;height:18px}
+  h2{font-size:17px}
+  .metric.humidity{padding-top:14px;margin-top:14px}
+  .value{font-size:36px;margin:6px 0 8px}
+  .unit{font-size:17px;margin-left:5px}
+  .humidity .value{font-size:28px;margin-bottom:8px}
+  .humidity .unit{font-size:15px}
+  .chart{height:62px}
+  .humidity .chart{height:48px}
+  .chart-times{margin-top:5px}
+  .chart-range{margin-top:6px}
+  .chart-tooltip{font-size:10px}
+}
 @media(prefers-color-scheme:dark){:root{--bg:#10171d;--card:#1a252e;--ink:#edf2f6;--muted:#a7b9c7;--line:#354652;--soft:#24343e;--teal:#86b8bf;--purple:#bbabcf;--shadow:none}.room-icon{color:#b0c9d9}.chart-fill{fill-opacity:.10}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
